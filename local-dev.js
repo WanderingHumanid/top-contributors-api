@@ -9,19 +9,28 @@ http.createServer((req, res) => {
   // Simple router to match Vercel API behavior
   const url = new URL(req.url, `http://${req.headers.host}`);
   
-  if (url.pathname === '/' || url.pathname === '/index.html') {
-    const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'));
-    res.setHeader('Content-Type', 'text/html');
-    res.end(html);
-  } else if (url.pathname === '/index.css') {
-    const css = fs.readFileSync(path.join(__dirname, 'public', 'index.css'));
-    res.setHeader('Content-Type', 'text/css');
-    res.end(css);
+  // Determine if we should serve a static file from public/
+  const staticPath = url.pathname === '/' ? '/index.html' : url.pathname;
+  const filePath = path.join(__dirname, 'public', staticPath);
+  
+  if (fs.existsSync(filePath) && fs.lstatSync(filePath).isFile()) {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.svg': 'image/svg+xml',
+      '.js': 'text/javascript'
+    };
+    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+    res.end(fs.readFileSync(filePath));
   } else if (url.pathname.startsWith('/api/contributors')) {
     // Mimic Vercel query parsing
     req.query = Object.fromEntries(url.searchParams);
     
-    // Provide a basic send() method that Vercel injects
+    // Provide basic send/status methods that Vercel injects
     res.status = (statusCode) => {
       res.statusCode = statusCode;
       return res;

@@ -145,11 +145,11 @@ body {
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 2.5rem;
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .text-paragraph {
@@ -232,6 +232,22 @@ body {
   background: rgba(255, 255, 255, 0.1);
   transform: translateY(-3px);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Demo Image */
+.demo-wrapper {
+  margin-top: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+}
+
+.demo-static-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Footer */

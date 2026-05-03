@@ -28,14 +28,31 @@
       <div class="button-group">
         <a href="https://github.com/vishnunandan555/top-contributors-api" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-          View on GitHub
+          GitHub
+        </a>
+        <a href="https://github.com/vishnunandan555/top-contributors-api/fork" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18v-6M18 12V8a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v4"/><circle cx="12" cy="21" r="3"/><circle cx="6" cy="15" r="3"/><circle cx="18" cy="15" r="3"/></svg>
+          Fork
+        </a>
+        <a href="https://github.com/vishnunandan555/top-contributors-api" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Star
         </a>
         <a href="/api/contributors" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-          View Raw API
+          Raw API
         </a>
       </div>
     </header>
+
+    <!-- Example Section -->
+    <section class="glass-card text-center">
+      <h2 class="section-title">✨ Profile Integration</h2>
+      <p class="text-paragraph">Here is how it looks when integrated into your GitHub profile README:</p>
+      <div class="demo-wrapper">
+        <img src="/demo.png" alt="Profile Example" class="demo-static-image">
+      </div>
+    </section>
 
     <!-- Features Section -->
     <section class="glass-card">
@@ -46,34 +63,6 @@
         <li><strong>🤖 Smart Filtering:</strong> Automatically excludes the repository owner and bots.</li>
         <li><strong>🛡️ 100% GitHub README Safe:</strong> Renders as a raw PNG image, bypassing GitHub's strict SVG sanitization rules.</li>
         <li><strong>🚀 Lightning Fast:</strong> Relies on a scheduled GitHub Action to cache data offline, so the API endpoint renders instantly (<50ms).</li>
-      </ul>
-    </section>
-
-    <!-- How it Works Section -->
-    <section class="glass-card">
-      <h2 class="section-title">🧠 How This Works</h2>
-      <p class="text-paragraph">If you are curious about the engineering behind this project, you might wonder: <em>Why use both GitHub Actions AND Vercel?</em> The answer comes down to <strong>Performance</strong> and <strong>Rate Limits</strong>.</p>
-      
-      <h3 class="subsection-title">1. The Heavy Lifter (GitHub Actions)</h3>
-      <p class="text-paragraph">Fetching all your repositories and paginating through hundreds of contributors takes time and API requests. If Vercel did this on the fly, it would hit GitHub's unauthenticated limit (60 requests/hr) and timeout. Instead, a daily GitHub Action securely uses the built-in <code>GITHUB_TOKEN</code> (1,000 requests/hr limit) to pre-calculate your top contributors and save them to a tiny <code>contributors.json</code> file.</p>
-      
-      <h3 class="subsection-title">2. The Fast Renderer (Vercel)</h3>
-      <p class="text-paragraph">When someone looks at your GitHub profile, your README makes a request to the Vercel URL. Because the heavy lifting is already done, the API simply reads the local JSON file and instantly draws the avatars onto a transparent Canvas PNG image. Vercel caches it globally, reducing response times to milliseconds!</p>
-    </section>
-
-    <!-- Usage Section -->
-    <section class="glass-card">
-      <h2 class="section-title">💻 Usage in your README</h2>
-      <p class="text-paragraph">Copy the markdown snippet below to embed the dynamic image directly into your GitHub Profile <code>README.md</code>:</p>
-      
-      <div class="code-block">
-        <code>## My Top Contributors 🏆<br><br>![Top Contributors](https://top-contributors-api.vercel.app/api/contributors)</code>
-      </div>
-
-      <h3 class="subsection-title">Customization</h3>
-      <ul class="feature-list">
-        <li><code>?limit=10</code> — Show the top 10 contributors (default is 5).</li>
-        <li><code>?size=50</code> — Render tiny 50px avatars (default is 80px).</li>
       </ul>
     </section>
 
