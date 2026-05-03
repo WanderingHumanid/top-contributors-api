@@ -2,7 +2,7 @@ name: Aggregate Top Contributors
 
 on:
   schedule:
-    - cron: '0 0 1 * *' # Runs at 00:00 on the 1st of every month
+    - cron: '0 0 * * *' # Runs daily at 00:00
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Run aggregation script
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_USERNAME: ${{ vars.GH_USERNAME }}
+          GH_USERNAME: ${{ github.repository_owner }}
         run: node scripts/aggregate.js
         
       - name: Commit and push changes

@@ -94,11 +94,11 @@ async function run() {
   
   console.log(`Aggregated ${sortedContributors.length} unique contributors.`);
   
-  // 4. Save result to data/${GH_USERNAME}.json
+  // 4. Save result to data/contributors.json
   const dataDir = path.join(__dirname, '..', 'data');
   await fs.mkdir(dataDir, { recursive: true });
   
-  const outputPath = path.join(dataDir, `${GH_USERNAME}.json`);
+  const outputPath = path.join(dataDir, `contributors.json`);
   await fs.writeFile(outputPath, JSON.stringify(sortedContributors, null, 2), 'utf-8');
   
   console.log(`Successfully saved aggregated data to ${outputPath}`);

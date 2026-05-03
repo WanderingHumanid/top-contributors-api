@@ -4,18 +4,14 @@ const axios = require('axios');
 const { createCanvas, loadImage } = require('canvas');
 
 module.exports = async (req, res) => {
-  const { username, limit = 5, size = 80 } = req.query;
-
-  if (!username) {
-    return res.status(400).send('Missing username parameter');
-  }
+  const { limit = 5, size = 80 } = req.query;
 
   const limitInt = parseInt(limit, 10) || 5;
   const sizeInt = parseInt(size, 10) || 80;
   const gap = 16;
 
   try {
-    const dataPath = path.join(__dirname, '..', 'data', `${username}.json`);
+    const dataPath = path.join(__dirname, '..', 'data', 'contributors.json');
     
     if (!fs.existsSync(dataPath)) {
       return res.status(404).send('Data not found for username');

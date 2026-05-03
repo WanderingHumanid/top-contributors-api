@@ -30,9 +30,9 @@ http.createServer((req, res) => {
     contributors(req, res);
   } else {
     res.writeHead(404);
-    res.end('Not Found. Try /api/contributors?username=vishnunandan555');
+    res.end('Not Found. Try /api/contributors');
   }
 }).listen(PORT, () => {
   console.log(`🚀 Local dev server running at: http://localhost:${PORT}`);
-  console.log(`👉 Test endpoint: http://localhost:${PORT}/api/contributors?username=vishnunandan555`);
+  console.log(`👉 Test endpoint: http://localhost:${PORT}/api/contributors`);
 });
