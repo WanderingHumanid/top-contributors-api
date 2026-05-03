@@ -99,8 +99,13 @@ export default async function handler(req, res) {
     });
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${avatarSize}">
-        ${images}
+      <svg xmlns="http://www.w3.org/2000/svg"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+           width="${width}" height="${avatarSize}">
+        ${top.map(([user, data], i) => {
+          const x = i * (avatarSize + gap);
+          return `<image xlink:href="${data.avatar}" x="${x}" y="0" width="${avatarSize}" height="${avatarSize}" clip-path="circle(${avatarSize/2}px at ${avatarSize/2}px ${avatarSize/2}px)" />`;
+        }).join("")}
       </svg>
     `;
 
