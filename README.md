@@ -1,88 +1,80 @@
-# Top Contributors API
+# 🚀 Top Contributors API
 
-A lightweight serverless endpoint that generates a live SVG showing the top contributors (by total contributions) across all *public* repositories of a GitHub user.
+A **production-ready architecture** to compute and display **top contributors across all repositories of a GitHub user**, optimized for reliability, rate limits, and GitHub README compatibility.
 
-This README only documents the current, accurate behavior of the service.
+## 🎯 Features
 
-## What it does
+* **Profile-Wide Aggregation**: Scans all your public repositories to find the top contributors.
+* **Smart Filtering**: Automatically excludes the repository owner and bots.
+* **100% GitHub README Safe**: Renders as a raw PNG image, bypassing GitHub's strict SVG and `<image>` sanitization rules.
+* **Lightning Fast**: Relies on a scheduled GitHub Action to cache data, so the API endpoint renders instantly without hitting GitHub API rate limits at runtime.
 
-- Fetches *all public repositories* for the requested username (paginated).
-- For each repository, fetches its contributors and sums contributions by contributor login across all repos.
-- Filters bots when requested and excludes non-user contributor types.
-- Returns an SVG containing the top N contributor avatars.
-- Sets `Cache-Control: s-maxage=3600, stale-while-revalidate` so responses are cached for 1 hour.
+---
 
-## Endpoint
+## 🚀 How to Set This Up for Yourself
 
-Base URL:
+### 1. Deploy to Vercel
+Clone or fork this repository, and import it into your Vercel dashboard to deploy the API endpoint. 
+*(Alternatively, use the Vercel CLI: `npm run dev` for local testing, or `npx vercel` to deploy).*
 
-```
-https://top-contributors-api.vercel.app/api/contributors
-```
+### 2. Configure GitHub Actions
+To populate the contributor data, you need to configure the scheduled GitHub Action in your repository.
 
-Required query param:
+1. Go to your repository's **Settings**.
+2. Navigate to **Secrets and variables** > **Actions** > **Variables** tab.
+3. Add a new variable:
+   * **Name**: `GH_USERNAME`
+   * **Value**: *Your GitHub Username*
+4. Go to the **Actions** tab in your repository and manually trigger the **Aggregate Top Contributors** workflow to generate your first batch of data.
 
-- `username` — GitHub username to analyze.
+*(Note: The workflow uses the built-in `GITHUB_TOKEN` automatically, so you don't need to generate a custom Personal Access Token!)*
 
-Optional query params:
+---
 
-- `limit` (default `5`) — number of top contributors to show.
-- `size` (default `60`) — avatar pixel size.
-- `bots` (default `true`) — set to `false` to exclude bot accounts (e.g. dependabot).
+## 🎨 Usage in your Profile README
 
-Example:
+Add this markdown to your `README.md` to display the contributors:
 
-```
-https://top-contributors-api.vercel.app/api/contributors?username=octocat&limit=8&size=80&bots=false
-```
+```md
+## Top Contributors
 
-Quick view (no bots, exclude owner)
-
-Replace `USERNAME` with the GitHub account you want to inspect. This example disables bots and the function will also automatically exclude the repo owner and the authenticated token user (if `GITHUB_TOKEN` is set in Vercel):
-
-```
-https://top-contributors-api.vercel.app/api/contributors?username=USERNAME&limit=8&size=80&bots=false
+![Top Contributors](https://your-vercel-app.vercel.app/api/contributors?username=your-username)
 ```
 
-Open that URL in your browser to preview the generated SVG. If you want me to update the README with a deployed preview link for a specific username, tell me which username to use and I'll add it.
+*(Remember to replace `your-vercel-app.vercel.app` with your actual Vercel deployment URL, and `your-username` with your GitHub username).*
 
-## Environment
+### ⚙️ Customization Parameters
 
-Set the following in Vercel (or your runtime environment):
+You can customize the output by adding query parameters to the image URL:
 
-- `GITHUB_TOKEN` — optional but strongly recommended. When present, requests are authenticated and gain a much higher GitHub API rate limit. Do NOT commit this token to source.
+| Param      | Type   | Default  | Description                    |
+| ---------- | ------ | -------- | ------------------------------ |
+| `username` | string | required | GitHub username to fetch for   |
+| `limit`    | number | 5        | Number of contributors to show |
+| `size`     | number | 80       | Avatar size (px)               |
 
-If `GITHUB_TOKEN` is missing the endpoint still works but will be subject to the much lower unauthenticated GitHub rate limits.
-
-## Behavior and limitations
-
-- Only public repositories are queried; private repo data is not accessible.
-- Contributions are summed by contributor login across all repositories.
-- Avatars are embedded in a single SVG; they are not individual links.
-- The service can be slow for users with very large numbers of repositories because it iterates all pages and fetches contributors for each repo. Caching mitigates repeated load.
-- If GitHub API errors occur, the endpoint returns a simple SVG with an error message instead of a broken image.
-
-## Deployment
-
-1. Import this repository into Vercel.
-2. Add `GITHUB_TOKEN` in Project Settings → Environment Variables.
-3. Deploy.
-
-## Local testing
-
-If you use the Vercel CLI you can run the function locally:
-
-```bash
-vercel dev
+**Example (10 contributors, 60px avatars):**
+```md
+![Top Contributors](https://your-vercel-app.vercel.app/api/contributors?username=your-username&limit=10&size=60)
 ```
 
-You may need Node.js installed to run the development server.
+---
 
-## Notes for maintainers
+## 🛠️ Local Development
 
-- The function fetches all repositories (paginated) and then fetches contributors per repo. It parallelizes contributor fetches but still may hit rate limits if unauthenticated.
-- The response uses `s-maxage=3600` to cache on Vercel's edge for one hour.
+If you want to modify the code or test the output locally without Vercel:
 
-## License
-
-MIT
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
+2. Generate mock data locally:
+   ```bash
+   GH_USERNAME=your-username node scripts/aggregate.js
+   ```
+3. Run the offline local development server:
+   ```bash
+   npm run dev
+   ```
+4. View the result in your browser: 
+   `http://localhost:3000/api/contributors?username=your-username`

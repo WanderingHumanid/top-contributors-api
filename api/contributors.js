@@ -1,119 +1,83 @@
-export const config = {
-  runtime: "nodejs"
-};
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const { createCanvas, loadImage } = require('canvas');
 
-export default async function handler(req, res) {
-  const username = req.query.username;
-  const TOP_N = 5;
+module.exports = async (req, res) => {
+  const { username, limit = 5, size = 80 } = req.query;
 
   if (!username) {
-    return res.status(400).send("Missing username");
+    return res.status(400).send('Missing username parameter');
   }
 
-  const headers = {
-    "Accept": "application/vnd.github+json",
-    "Authorization": `Bearer ${process.env.GH_TOKEN || ""}`,
-    "User-Agent": "top-contributors-api"
-  };
+  const limitInt = parseInt(limit, 10) || 5;
+  const sizeInt = parseInt(size, 10) || 80;
+  const gap = 16;
 
-  // ---------- FETCH REPOS ----------
-  let repos = [];
-  let page = 1;
-
-  while (true) {
-    const r = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&page=${page}`, { headers });
-    const data = await r.json();
-    if (!data.length) break;
-    repos.push(...data);
-    page++;
-  }
-
-  // ---------- COLLECT CONTRIBUTORS ----------
-  let contributors = {};
-
-  for (const repo of repos) {
-    let page = 1;
-
-    while (true) {
-      const r = await fetch(`https://api.github.com/repos/${username}/${repo.name}/contributors?per_page=100&page=${page}`, { headers });
-      const data = await r.json();
-
-      if (!data.length || data.message) break;
-
-      for (const user of data) {
-        const login = user.login.toLowerCase();
-
-        // skip self + bots
-        if (login === username.toLowerCase()) continue;
-        if (user.type !== "User") continue;
-
-        if (!contributors[login]) {
-          contributors[login] = {
-            count: 0,
-            avatar: user.avatar_url
-          };
-        }
-
-        contributors[login].count += user.contributions;
-      }
-
-      page++;
+  try {
+    const dataPath = path.join(__dirname, '..', 'data', `${username}.json`);
+    
+    if (!fs.existsSync(dataPath)) {
+      return res.status(404).send('Data not found for username');
     }
+
+    const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    const topContributors = data.slice(0, limitInt);
+
+    if (topContributors.length === 0) {
+      // Return empty 1x1 png if no contributors
+      const emptyCanvas = createCanvas(1, 1);
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 's-maxage=86400');
+      return emptyCanvas.createPNGStream().pipe(res);
+    }
+
+    // Canvas dimensions
+    const width = (topContributors.length * sizeInt) + ((topContributors.length - 1) * gap);
+    const height = sizeInt;
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    // Load and draw all avatars
+    for (let i = 0; i < topContributors.length; i++) {
+      const contributor = topContributors[i];
+      try {
+        const response = await axios.get(contributor.avatar, { responseType: 'arraybuffer' });
+        const img = await loadImage(Buffer.from(response.data, 'binary'));
+        
+        const x = i * (sizeInt + gap);
+        const y = 0;
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + sizeInt / 2, y + sizeInt / 2, sizeInt / 2, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip();
+        
+        ctx.drawImage(img, x, y, sizeInt, sizeInt);
+        
+        ctx.restore();
+      } catch (err) {
+        console.error(`Failed to load avatar for ${contributor.username}:`, err.message);
+        // Draw a gray circle placeholder
+        const x = i * (sizeInt + gap);
+        const y = 0;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + sizeInt / 2, y + sizeInt / 2, sizeInt / 2, 0, Math.PI * 2, true);
+        ctx.fillStyle = '#cccccc';
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+
+    canvas.createPNGStream().pipe(res);
+  } catch (error) {
+    console.error('API Error:', error);
+    res.status(500).send('Internal Server Error');
   }
-
-  const top = Object.entries(contributors)
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, TOP_N);
-
-  // ---------- FETCH + CONVERT AVATARS TO BASE64 ----------
-  async function toBase64(url) {
-    const response = await fetch(url);
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    return `data:image/png;base64,${base64}`;
-  }
-
-  const avatars = await Promise.all(
-    top.map(async ([user, data]) => {
-      return {
-        name: user,
-        count: data.count,
-        img: await toBase64(data.avatar)
-      };
-    })
-  );
-
-  // ---------- SVG GENERATION ----------
-  const size = 60;
-  const gap = 20;
-  const width = avatars.length * (size + gap);
-  const height = 80;
-
-  let svgImages = "";
-
-  avatars.forEach((user, i) => {
-    const x = i * (size + gap);
-
-    svgImages += `
-      <defs>
-        <pattern id="img${i}" patternUnits="userSpaceOnUse" width="${size}" height="${size}">
-          <image href="${user.img}" width="${size}" height="${size}" />
-        </pattern>
-      </defs>
-
-      <circle cx="${x + size / 2}" cy="${size / 2}" r="${size / 2}" fill="url(#img${i})" />
-    `;
-  });
-
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      ${svgImages}
-    </svg>
-  `;
-
-  // ---------- HEADERS ----------
-  res.setHeader("Content-Type", "image/svg+xml");
-  res.setHeader("Cache-Control", "s-maxage=3600");
-
-  return res.status(200).send(svg);
-}
+};
