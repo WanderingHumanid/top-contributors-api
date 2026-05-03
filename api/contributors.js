@@ -1,7 +1,14 @@
+// api/contributors.js
+
+export const config = {
+  runtime: "nodejs"
+};
+
 export default async function handler(req, res) {
+
   const username = req.query.username;
   const TOP_N = 5;
-
+  
   if (!username) {
     return res.status(400).send("Missing username");
   }
