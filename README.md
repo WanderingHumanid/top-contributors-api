@@ -36,6 +36,16 @@ Example:
 https://top-contributors-api.vercel.app/api/contributors?username=octocat&limit=8&size=80&bots=false
 ```
 
+Quick view (no bots, exclude owner)
+
+Replace `USERNAME` with the GitHub account you want to inspect. This example disables bots and the function will also automatically exclude the repo owner and the authenticated token user (if `GITHUB_TOKEN` is set in Vercel):
+
+```
+https://top-contributors-api.vercel.app/api/contributors?username=USERNAME&limit=8&size=80&bots=false
+```
+
+Open that URL in your browser to preview the generated SVG. If you want me to update the README with a deployed preview link for a specific username, tell me which username to use and I'll add it.
+
 ## Environment
 
 Set the following in Vercel (or your runtime environment):

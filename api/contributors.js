@@ -113,8 +113,8 @@ export default async function handler(req, res) {
 
     // Build GitHub-safe SVG using <pattern> + <circle> per avatar
     const defs = top.map(([user, data], i) => `
-      <pattern id="p${i}" patternUnits="userSpaceOnUse" width="${avatarSize}" height="${avatarSize}">
-        <image xlink:href="${data.avatar}" width="${avatarSize}" height="${avatarSize}" />
+      <pattern id="p${i}" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" width="${avatarSize}" height="${avatarSize}">
+        <image x="0" y="0" xlink:href="${data.avatar}" width="${avatarSize}" height="${avatarSize}" preserveAspectRatio="xMidYMid slice" />
       </pattern>
     `).join("");
 
