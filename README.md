@@ -1,8 +1,14 @@
-# 🚀 Top Contributors API
+# 🏆 My Top Contributors
 
-A **production-ready architecture** to compute and display **top contributors across all your public repositories**, optimized for reliability, rate limits, and GitHub README compatibility.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Website-6366f1?style=for-the-badge)](https://top-contributors-api.vercel.app)
 
-This project is built with a **"Zero Configuration"** philosophy. You simply fork the repository and deploy it. It automatically detects who you are and builds your image!
+A personalized, zero-configuration system to automatically calculate and showcase the **top contributors across all your public GitHub repositories** directly on your GitHub Profile README.
+
+By splitting the workload between a daily GitHub Action and a lightning-fast Vercel API, this project gives you a production-grade contributor image without ever hitting GitHub API rate limits. Best of all? **It requires absolutely zero configuration.** Just fork, deploy, and you're done!
+
+👉 **Curious about the engineering?** Read [HOW THIS WORKS.md](HOW%20THIS%20WORKS.md) for a deep dive into how we bypass GitHub's API rate limits and SVG restrictions.
+
+---
 
 ## 🎯 Features
 
@@ -11,71 +17,71 @@ This project is built with a **"Zero Configuration"** philosophy. You simply for
 * **Smart Filtering**: Automatically excludes the repository owner and bots.
 * **100% GitHub README Safe**: Renders as a raw PNG image, bypassing GitHub's strict SVG sanitization rules.
 * **Lightning Fast**: Relies on a scheduled GitHub Action to cache data offline, so the API endpoint renders instantly without hitting GitHub API rate limits.
+* **Built-in Landing Page**: Comes with a stunning, auto-generated documentation website right out of the box!
 
 ---
 
 ## 🛠️ Step-by-Step Setup Guide
 
-### Step 1: Fork the Repository
+Setting this up takes less than 2 minutes. Follow these 3 simple steps:
 
+### 1️⃣ Fork the Repository
 Click the **Fork** button at the top right of this page to create your own copy of the repository.
 
-### Step 2: Enable the GitHub Action
+### 2️⃣ Enable & Run GitHub Actions
+This project uses an automatic script to calculate your contributors daily. Since you just forked it, you need to enable it and run it for the first time.
 
-Because this is a fork, GitHub disables scheduled workflows by default. You need to enable it so it can start generating your data daily.
-
-1. Go to the **Actions** tab in your forked repository.
+1. Go to the **Actions** tab at the top of your repository.
 2. Click the green **"I understand my workflows, go ahead and enable them"** button.
 3. On the left sidebar, click **Aggregate Top Contributors**.
-4. On the right side, click the **Run workflow** dropdown, and click **Run workflow**.
+4. Click the **Run workflow** dropdown on the right side, and hit the green **Run workflow** button.
 
-> 🎉 **Done!** The action will now scan your repositories and generate a `data/contributors.json` file. It will automatically re-run every day at midnight to keep your stats updated.
+> ⏳ *Wait about 30 seconds for it to finish and show a green checkmark! Your data is now successfully generated.*
 
-### Step 3: Deploy to Vercel
+### 3️⃣ Deploy to Vercel
+Now, let's deploy the API that serves the beautiful image and landing page.
 
-Now that your GitHub Action has generated the data, you can deploy the image renderer to Vercel.
+1. Create a free account on [Vercel](https://vercel.com) (log in with GitHub).
+2. From the dashboard, click **Add New...** > **Project**.
+3. Import your newly forked `top-contributors-api` repository.
+4. Leave everything blank! **No environment variables are needed.**
+5. Click **Deploy**.
 
-1. Create a free account on [Vercel](https://vercel.com).
-2. Click **Add New Project** and select your forked GitHub repository.
-3. You **do not** need to add any Environment Variables. Leave them blank!
-4. Click **Deploy**.
-5. Once finished, Vercel will give you a domain (e.g., `https://top-contributors-api-yourname.vercel.app`). **Copy this URL**.
+> 🔗 *Once finished, Vercel will give you a domain (e.g., `https://your-app.vercel.app`). Copy this URL!*
 
 ---
 
-## 🎨 Usage in your Profile README
+## 🎨 Usage
 
-Now that your API is deployed and data is generated, you can display the image in your GitHub Profile `README.md`!
+Now that your API is live, you can embed the dynamic image directly into your GitHub Profile `README.md`!
 
-Copy the markdown below, but make sure to replace the Vercel URL with your actual URL from Step 3:
+### Basic Embedding
+Copy this markdown snippet and replace the URL with your Vercel URL from Step 3:
 
 ```md
 ## My Top Contributors 🏆
 
-![Top Contributors](https://your-vercel-app.vercel.app/api/contributors)
+![Top Contributors](https://your-app.vercel.app/api/contributors)
 ```
 
----
+### ⚙️ Customization Parameters
+You can customize the image dynamically by adding parameters to the URL.
 
-## ⚙️ Customization Parameters
+| Parameter | Default | Description |
+| :--- | :---: | :--- |
+| `limit` | `5` | The number of contributors to display. |
+| `size` | `80` | The size of the circular avatars in pixels. |
 
-You can customize the image dynamically by simply adding query parameters to the URL.
+### Examples
 
-| Parameter | Type   | Default | Description                    |
-| --------- | ------ | ------- | ------------------------------ |
-| `limit`   | number | 5       | Number of contributors to show |
-| `size`    | number | 80      | Avatar size in pixels          |
-
-### Examples:
-
-**1. Show the Top 10 Contributors:**
+**Show the Top 10 Contributors:**
 ```md
-![Top Contributors](https://your-vercel-app.vercel.app/api/contributors?limit=10)
+![Top Contributors](https://your-app.vercel.app/api/contributors?limit=10)
 ```
 
-**2. Compact view (Top 3 contributors, 50px avatars):**
+**Compact view (Top 3 contributors, tiny 50px avatars):**
 ```md
-![Top Contributors](https://your-vercel-app.vercel.app/api/contributors?limit=3&size=50)
+![Top Contributors](https://your-app.vercel.app/api/contributors?limit=3&size=50)
 ```
 
 ---
@@ -84,17 +90,14 @@ You can customize the image dynamically by simply adding query parameters to the
 
 If you want to modify the code or test the output locally without deploying to Vercel:
 
-1. Clone your repository to your local machine and install dependencies:
-   ```bash
-   npm install
-   ```
-2. Generate mock data locally (replace `your-username`):
-   ```bash
-   GH_USERNAME=your-username node scripts/aggregate.js
-   ```
-3. Run the offline local development server:
-   ```bash
-   npm run dev
-   ```
-4. View the result in your browser: 
-   `http://localhost:3000/api/contributors`
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Generate mock data locally (replace your-username)
+GH_USERNAME=your-username node scripts/aggregate.js
+
+# 3. Run the local development server
+npm run dev
+```
+*Visit `http://localhost:3000` to view the beautiful landing page and test your API!*

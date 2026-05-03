@@ -1,4 +1,6 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const contributors = require('./api/contributors');
 
 const PORT = 3000;
@@ -7,7 +9,15 @@ http.createServer((req, res) => {
   // Simple router to match Vercel API behavior
   const url = new URL(req.url, `http://${req.headers.host}`);
   
-  if (url.pathname.startsWith('/api/contributors')) {
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'));
+    res.setHeader('Content-Type', 'text/html');
+    res.end(html);
+  } else if (url.pathname === '/index.css') {
+    const css = fs.readFileSync(path.join(__dirname, 'public', 'index.css'));
+    res.setHeader('Content-Type', 'text/css');
+    res.end(css);
+  } else if (url.pathname.startsWith('/api/contributors')) {
     // Mimic Vercel query parsing
     req.query = Object.fromEntries(url.searchParams);
     
