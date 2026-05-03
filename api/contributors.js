@@ -21,24 +21,12 @@ module.exports = async (req, res) => {
     const topContributors = data.slice(0, limitInt);
 
     if (topContributors.length === 0) {
-      // Return a helpful placeholder image instead of a 1x1 invisible pixel
-      const canvas = createCanvas(400, 80);
-      const ctx = canvas.getContext('2d');
-      
-      ctx.fillStyle = '#1e1e2e';
-      ctx.beginPath();
-      ctx.roundRect(0, 0, 400, 80, 10);
-      ctx.fill();
-      
-      ctx.fillStyle = '#a6accd';
-      ctx.font = '16px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Run GitHub Action to generate data', 200, 40);
-      
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 's-maxage=86400');
-      return canvas.createPNGStream().pipe(res);
+      // Vercel serverless functions do not have system fonts installed by default, 
+      // which causes canvas to render text as "tofu" blocks.
+      // To fix this cleanly, we just redirect to a pre-rendered placeholder PNG.
+      res.statusCode = 302;
+      res.setHeader('Location', 'https://placehold.co/400x80/1e1e2e/a6accd.png?text=Run+GitHub+Action+to+generate+data');
+      return res.end();
     }
 
     // Canvas dimensions
