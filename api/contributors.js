@@ -27,6 +27,21 @@ export default async function handler(req, res) {
       headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
     }
 
+    // If we have a token, determine the authenticated user's login so we can
+    // optionally exclude them from the contributors list (avoid showing yourself)
+    let authUser = null;
+    if (process.env.GITHUB_TOKEN) {
+      try {
+        const meRes = await fetch("https://api.github.com/user", { headers });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          authUser = meData.login && meData.login.toLowerCase();
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     // Fetch repos
     let repos = [];
     let repoPage = 1;
@@ -56,8 +71,15 @@ export default async function handler(req, res) {
         if (!data.length || data.message) break;
 
         for (const user of data) {
+          const loginLower = (user.login || "").toLowerCase();
+          // skip bots when ?bots=false
           if (bots === "false" && user.type === "Bot") continue;
+          // skip non-user types
           if (user.type !== "User" && user.type !== "Bot") continue;
+          // skip the repo owner (the `username` query param)
+          if (loginLower === String(username).toLowerCase()) continue;
+          // skip the authenticated token owner (if any)
+          if (authUser && loginLower === authUser) continue;
 
           if (!contributors[user.login]) {
             contributors[user.login] = {
@@ -89,23 +111,22 @@ export default async function handler(req, res) {
     const gap = 20;
     const width = top.length * (avatarSize + gap) - gap;
 
-    let images = "";
+    // Build GitHub-safe SVG using <pattern> + <circle> per avatar
+    const defs = top.map(([user, data], i) => `
+      <pattern id="p${i}" patternUnits="userSpaceOnUse" width="${avatarSize}" height="${avatarSize}">
+        <image xlink:href="${data.avatar}" width="${avatarSize}" height="${avatarSize}" />
+      </pattern>
+    `).join("");
 
-    top.forEach(([user, data], i) => {
-      const x = i * (avatarSize + gap);
-      images += `
-        <image href="${data.avatar}" x="${x}" y="0" width="${avatarSize}" height="${avatarSize}" clip-path="circle(${(avatarSize / 2)}px at ${(avatarSize / 2)}px ${(avatarSize / 2)}px)" />
-      `;
-    });
+    const circles = top.map(([user, data], i) => {
+      const cx = i * (avatarSize + gap) + avatarSize / 2;
+      return `<circle cx="${cx}" cy="${avatarSize / 2}" r="${avatarSize / 2}" fill="url(#p${i})" />`;
+    }).join("");
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg"
-           xmlns:xlink="http://www.w3.org/1999/xlink"
-           width="${width}" height="${avatarSize}">
-        ${top.map(([user, data], i) => {
-          const x = i * (avatarSize + gap);
-          return `<image xlink:href="${data.avatar}" x="${x}" y="0" width="${avatarSize}" height="${avatarSize}" clip-path="circle(${avatarSize/2}px at ${avatarSize/2}px ${avatarSize/2}px)" />`;
-        }).join("")}
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${avatarSize}">
+        <defs>${defs}</defs>
+        ${circles}
       </svg>
     `;
 
