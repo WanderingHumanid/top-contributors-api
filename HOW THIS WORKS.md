@@ -85,5 +85,45 @@ However, GitHub's markdown image proxy (`camo`) strictly sanitizes SVGs. It stri
 
 ---
 
+## 🕒 Minute-by-Minute: The Daily Automation Deep Dive
+
+If you're wondering exactly what happens when the clock strikes midnight, here is the breakdown:
+
+### 00:00 - The Wake Up
+GitHub's internal scheduler triggers the `Aggregate Top Contributors` workflow. A virtual machine in the cloud (Ubuntu) is spun up specifically for your project.
+
+### 00:01 - Environment Setup
+The machine clones your repository and installs Node.js. It runs `npm ci` to install dependencies in seconds.
+
+### 00:02 - The Data Hunt (`aggregate.js`)
+1. **Repo Scanning**: The script asks the GitHub API for every public repository owned by you.
+2. **Contributor Deep-Dive**: For every repository found, it fetches the list of people who have contributed code.
+3. **The Filter**: It ignores your own username and filters out common bots (like `dependabot` or `github-actions`).
+4. **The Tally**: It sums up all contributions across every repo and sorts everyone from "Most" to "Least."
+
+### 00:03 - The "Hard Copy"
+The script writes this sorted list into `data/contributors.json`. This acts as a **static cache**. By saving it as a file, we ensure the Vercel API is lightning fast because it doesn't have to talk to GitHub at all.
+
+### 00:04 - The Secure Commit
+The GitHub Action uses its built-in `GITHUB_TOKEN` to:
+1. Stage the changes: `git add data/`
+2. Sign the commit: `git commit -m "chore: update data"`
+3. Push: `git push`
+
+### 00:05 - Vercel Deployment
+Vercel detects the new commit on your `main` branch. It automatically triggers a "Production Redeploy." Your new data is now live and globally distributed on Vercel's Edge Network.
+
+---
+
+## 🛡️ Security & Safeguards
+
+To ensure this remains a "Set it and Forget it" project, we have implemented:
+
+1. **Read-Only PRs**: Any Pull Request from a stranger triggers `test.yml`, which has **zero write access**. It can't steal secrets or change your code.
+2. **Rate Limit Protection**: By using a scheduled Action with a token, we get 1,000 requests/hour, far exceeding the 60/hour limit for public users.
+3. **API Capping**: Our Vercel endpoint strictly caps the `limit` and `size` parameters to prevent malicious users from trying to crash the server with giant requests.
+
+---
+
 ### Summary
 By pairing a scheduled data-aggregation pipeline with a serverless edge renderer, you get an infinitely scalable, zero-configuration dynamic image that never hits rate limits and never slows down your profile load time!

@@ -6,8 +6,10 @@ const { createCanvas, loadImage } = require('canvas');
 module.exports = async (req, res) => {
   const { limit = 5, size = 80 } = req.query;
 
-  const limitInt = parseInt(limit, 10) || 5;
-  const sizeInt = parseInt(size, 10) || 80;
+  // Safety caps: prevent users from requesting massive amounts of data or giant images
+  // which could crash the server or incur high costs.
+  const limitInt = Math.min(parseInt(limit, 10) || 5, 50);  // Max 50 contributors
+  const sizeInt = Math.min(parseInt(size, 10) || 80, 200);  // Max 200px per avatar
   const gap = 16;
 
   try {
